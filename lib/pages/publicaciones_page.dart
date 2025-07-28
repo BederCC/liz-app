@@ -6,10 +6,19 @@ class PublicacionesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Publicaciones')),
+      appBar: AppBar(
+        title: const Text('Mis Publicaciones'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.category),
+            onPressed: () {
+              Navigator.pushNamed(context, '/categorias');
+            },
+            tooltip: 'Ver categorías',
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -20,20 +29,18 @@ class PublicacionesPage extends StatelessWidget {
               'Bienvenido a tus publicaciones',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 10),
-            Text(user?.email ?? '', style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 30),
-            const Text(
-              'Aquí podrás ver y gestionar todas tus publicaciones',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/categorias');
+              },
+              child: const Text('Ver Categorías'),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Aquí añadirás la lógica para crear nuevas publicaciones después
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Crear nueva publicación')),
           );
