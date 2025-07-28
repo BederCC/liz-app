@@ -4,6 +4,7 @@ import 'package:aplicacion_luz/pages/categorias_page.dart';
 import 'package:aplicacion_luz/pages/perfil_usuario_page.dart';
 import 'package:aplicacion_luz/pages/publicaciones_page.dart';
 import 'package:aplicacion_luz/services/categoria_service.dart';
+import 'package:aplicacion_luz/services/publicacion_service.dart';
 import 'package:aplicacion_luz/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -46,6 +47,7 @@ void main() async {
       providers: [
         Provider<UserService>(create: (_) => UserService()),
         Provider<CategoriaService>(create: (_) => CategoriaService()),
+        Provider<PublicacionService>(create: (_) => PublicacionService()),
         // Agrega otros providers aquí si los necesitas
       ],
       child: MaterialApp(
