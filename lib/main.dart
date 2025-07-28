@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:aplicacion_luz/pages/lib/pages/perfil_usuario_page.dart';
+import 'package:aplicacion_luz/pages/perfil_usuario_page.dart';
+import 'package:aplicacion_luz/pages/publicaciones_page.dart';
 import 'package:aplicacion_luz/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -51,7 +52,7 @@ void main() async {
         home: const AuthWrapper(), // Widget que decide si mostrar login o home
         routes: {
           '/perfil': (context) => const PerfilUsuarioPage(),
-          // Agrega otras rutas aquí
+          '/publicaciones': (context) => const PublicacionesPage(),
         },
         debugShowCheckedModeBanner: false,
       ),
@@ -487,6 +488,22 @@ class ProfilePage extends StatelessWidget {
                 style: TextStyle(fontSize: 16),
               ),
             ),
+            const SizedBox(height: 20),
+            // Nuevo botón para publicaciones
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/publicaciones');
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: Colors.green,
+              ),
+              child: const Text(
+                'Mis Publicaciones',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+
             const SizedBox(height: 20),
             if (!user.emailVerified)
               Padding(
