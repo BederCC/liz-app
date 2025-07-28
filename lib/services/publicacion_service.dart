@@ -40,6 +40,22 @@ class PublicacionService {
     return docRef.id;
   }
 
+  Future<void> actualizarPublicacion({
+    required String publicacionId,
+    required String categoriaId,
+    required String titulo,
+    required String contenido,
+    required bool esAnonimo,
+  }) async {
+    await _firestore.collection('publicaciones').doc(publicacionId).update({
+      'categoriaId': categoriaId,
+      'titulo': titulo,
+      'contenido': contenido,
+      'esAnonimo': esAnonimo,
+      'fechaPublicacion': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> eliminarPublicacion(String publicacionId) async {
     await _firestore.collection('publicaciones').doc(publicacionId).delete();
   }

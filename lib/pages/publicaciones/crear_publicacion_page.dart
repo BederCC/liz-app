@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:aplicacion_luz/services/categoria_service.dart';
 import 'package:aplicacion_luz/services/publicacion_service.dart';
 import 'package:aplicacion_luz/models/categoria_model.dart';
+import 'package:aplicacion_luz/models/publicacion_model.dart';
 
 class CrearPublicacionPage extends StatefulWidget {
-  const CrearPublicacionPage({super.key});
+  final Publicacion? publicacionExistente;
+
+  const CrearPublicacionPage({super.key, this.publicacionExistente});
 
   @override
   State<CrearPublicacionPage> createState() => _CrearPublicacionPageState();
@@ -20,6 +23,17 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.publicacionExistente != null) {
+      _tituloController.text = widget.publicacionExistente!.titulo;
+      _contenidoController.text = widget.publicacionExistente!.contenido;
+      _categoriaSeleccionada = widget.publicacionExistente!.categoriaId;
+      _esAnonimo = widget.publicacionExistente!.esAnonimo;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final categoriaService = Provider.of<CategoriaService>(
       context,
@@ -31,7 +45,13 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nueva Publicación')),
+      appBar: AppBar(
+        title: Text(
+          widget.publicacionExistente == null
+              ? 'Nueva Publicación'
+              : 'Editar Publicación',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -114,10 +134,17 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
                 ElevatedButton(
                   onPressed: _isLoading
                       ? null
-                      : () => _crearPublicacion(context, publicacionService),
+                      : () => _crearOActualizarPublicacion(
+                          context,
+                          publicacionService,
+                        ),
                   child: _isLoading
                       ? const CircularProgressIndicator()
-                      : const Text('Publicar'),
+                      : Text(
+                          widget.publicacionExistente == null
+                              ? 'Publicar'
+                              : 'Actualizar',
+                        ),
                 ),
               ],
             ),
@@ -127,7 +154,7 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
     );
   }
 
-  Future<void> _crearPublicacion(
+  Future<void> _crearOActualizarPublicacion(
     BuildContext context,
     PublicacionService service,
   ) async {
@@ -135,21 +162,34 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
       setState(() => _isLoading = true);
 
       try {
-        await service.crearPublicacion(
-          categoriaId: _categoriaSeleccionada!,
-          titulo: _tituloController.text,
-          contenido: _contenidoController.text,
-          esAnonimo: _esAnonimo,
-        );
+        if (widget.publicacionExistente == null) {
+          await service.crearPublicacion(
+            categoriaId: _categoriaSeleccionada!,
+            titulo: _tituloController.text,
+            contenido: _contenidoController.text,
+            esAnonimo: _esAnonimo,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Publicación creada con éxito')),
+          );
+        } else {
+          await service.actualizarPublicacion(
+            publicacionId: widget.publicacionExistente!.id,
+            categoriaId: _categoriaSeleccionada!,
+            titulo: _tituloController.text,
+            contenido: _contenidoController.text,
+            esAnonimo: _esAnonimo,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Publicación actualizada con éxito')),
+          );
+        }
 
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Publicación creada con éxito')),
-        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear publicación: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       } finally {
         setState(() => _isLoading = false);
       }
