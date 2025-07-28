@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:aplicacion_luz/pages/categorias_page.dart';
 import 'package:aplicacion_luz/pages/perfil_usuario_page.dart';
+import 'package:aplicacion_luz/pages/publicaciones/todas_publicaciones_page.dart';
 import 'package:aplicacion_luz/pages/publicaciones_page.dart';
 import 'package:aplicacion_luz/services/categoria_service.dart';
 import 'package:aplicacion_luz/services/publicacion_service.dart';
@@ -59,6 +60,7 @@ void main() async {
           '/perfil': (context) => const PerfilUsuarioPage(),
           '/publicaciones': (context) => const PublicacionesPage(),
           '/categorias': (context) => const CategoriasPage(),
+          '/todas-publicaciones': (context) => const TodasPublicacionesPage(),
         },
         debugShowCheckedModeBanner: false,
       ),
@@ -512,6 +514,17 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            // Nuevo botón para ver todas las publicaciones
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/todas-publicaciones');
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: const Color.fromARGB(255, 255, 234, 114),
+              ),
+              child: const Text('Ver Publicaciones'),
             ),
 
             const SizedBox(height: 20),
