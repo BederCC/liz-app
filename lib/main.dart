@@ -475,33 +475,37 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Botón para actualizar datos
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/perfil');
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blueAccent,
-              ),
-              child: const Text(
-                'Actualizar Mis Datos',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Nuevo botón para publicaciones
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/publicaciones');
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.green,
-              ),
-              child: const Text(
-                'Mis Publicaciones',
-                style: TextStyle(fontSize: 16),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/perfil');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(
+                        0,
+                        50,
+                      ), // Alto fijo, ancho flexible
+                      backgroundColor: Colors.blueAccent,
+                    ),
+                    child: const Text('Actualizar Datos'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/publicaciones');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 50),
+                      backgroundColor: Colors.green,
+                    ),
+                    child: const Text('Mis Publicaciones'),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 20),
