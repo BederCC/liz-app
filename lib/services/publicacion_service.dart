@@ -150,4 +150,28 @@ class PublicacionService {
       'fecha': FieldValue.serverTimestamp(),
     });
   }
+
+  Stream<bool> hasUserLikedStream(String publicacionId) {
+    final user = _auth.currentUser;
+    if (user == null) return Stream.value(false);
+
+    return _firestore
+        .collection('reacciones')
+        .doc('${publicacionId}_${user.uid}')
+        .snapshots()
+        .map((doc) => doc.exists);
+  }
+
+  Stream<int> getLikesCountStream(String publicacionId) {
+    return _firestore
+        .collection('publicaciones')
+        .doc(publicacionId)
+        .snapshots()
+        .map((snapshot) {
+          if (!snapshot.exists) return 0;
+          final data = snapshot.data();
+          if (data == null) return 0;
+          return (data['likesCount'] as int?) ?? 0;
+        });
+  }
 }

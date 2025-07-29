@@ -143,6 +143,16 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
+      // Validación adicional del dominio
+      final email = _emailController.text.trim();
+      if (!email.endsWith('@khipu.edu.pe')) {
+        setState(() {
+          _errorMessage = 'Solo se permiten cuentas @khipu.edu.pe';
+          _isLoading = false;
+        });
+        return;
+      }
+
       setState(() {
         _isLoading = true;
         _errorMessage = null;
@@ -150,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text.trim(),
         );
       } on FirebaseAuthException catch (e) {
@@ -163,7 +173,18 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate() || !mounted) return;
+    // Validar formulario
+    if (!_formKey.currentState!.validate()) return;
+
+    // Validar dominio
+    final email = _emailController.text.trim();
+    if (!email.endsWith('@khipu.edu.pe')) {
+      setState(() {
+        _errorMessage = 'Solo se permiten cuentas @khipu.edu.pe';
+        _isLoading = false;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -171,48 +192,88 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+      print("Iniciando proceso de registro para: $email");
 
-      print("Intentando registrar usuario: $email");
-
-      // Crear usuario en Auth directamente sin la verificación de prueba
-      print("Creando usuario en Authentication...");
+      // 1. Crear usuario en Authentication
+      print("Creando usuario en Firebase Auth...");
       final userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+          .createUserWithEmailAndPassword(
+            email: email,
+            password: _passwordController.text.trim(),
+          )
+          .timeout(const Duration(seconds: 30)); // Agregar timeout
 
       final user = userCredential.user;
-      if (user == null || !mounted) return;
-      print("Usuario creado en Authentication con ID: ${user.uid}");
+      if (user == null) throw Exception("Usuario no creado");
 
-      // Crear documento en Firestore
+      print("Usuario creado en Auth: ${user.uid}");
+
+      // 2. Crear documento en Firestore
       try {
-        print("Intentando crear usuario en Firestore...");
+        print("Creando usuario en Firestore...");
         await _createFirestoreUser(user.uid, email);
       } catch (e) {
-        // Si falla la creación en Firestore, eliminar el usuario de Authentication
-        print(
-          "Error al crear usuario en Firestore, eliminando usuario de Authentication: $e",
-        );
+        print("Error en Firestore, eliminando usuario de Auth: $e");
         await user.delete();
-        throw Exception("Error al crear perfil de usuario: $e");
+        rethrow;
       }
 
-      // Enviar verificación
+      // 3. Enviar email de verificación
+      print("Enviando email de verificación...");
       await user.sendEmailVerification();
-      print("Email de verificación enviado a: $email");
+      print("Email de verificación enviado");
 
       // Mostrar éxito
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registro exitoso. Verifica tu email.')),
+        const SnackBar(
+          content: Text('Registro exitoso. Verifica tu email.'),
+          duration: Duration(seconds: 5),
+        ),
       );
-    } catch (e) {
-      print("Error en el proceso de registro: $e");
+
+      // Cerrar el loading
+      setState(() => _isLoading = false);
+
+      // Opcional: Cambiar a formulario de login
+      setState(() => _showRegisterForm = false);
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage = 'El correo ya está registrado';
+          break;
+        case 'weak-password':
+          errorMessage = 'La contraseña es demasiado débil';
+          break;
+        case 'operation-not-allowed':
+          errorMessage = 'Operación no permitida';
+          break;
+        case 'network-request-failed':
+          errorMessage = 'Error de conexión a internet';
+          break;
+        default:
+          errorMessage = 'Error en el registro: ${e.message}';
+      }
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = errorMessage;
         _isLoading = false;
       });
+    } on TimeoutException {
+      setState(() {
+        _errorMessage = 'Tiempo de espera agotado. Intenta nuevamente';
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error general en registro: $e");
+      setState(() {
+        _errorMessage = 'Error en el registro: ${e.toString()}';
+        _isLoading = false;
+      });
+    } finally {
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -285,6 +346,9 @@ class _LoginPageState extends State<LoginPage> {
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Ingresa tu correo';
                     if (!value!.contains('@')) return 'Correo inválido';
+                    if (!value.endsWith('@khipu.edu.pe')) {
+                      return 'Solo se permiten cuentas @khipu.edu.pe';
+                    }
                     return null;
                   },
                 ),
