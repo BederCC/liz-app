@@ -41,6 +41,7 @@ Es una plataforma que permite a los usuarios registrarse, iniciar sesión, crear
 ## 📂 Estructura del proyecto
 
 ---
+```
 ├── .gitignore
 ├── .metadata
 ├── README.md
@@ -59,7 +60,6 @@ Es una plataforma que permite a los usuarios registrarse, iniciar sesión, crear
 │   │   ├── categorias_page.dart
 │   │   ├── perfil_usuario_page.dart
 │   │   ├── publicaciones
-
 │   │   └── publicaciones_page.dart
 │   ├── profile_page.dart
 │   └── services        # Servicios para interactuar con Firebase
@@ -73,7 +73,7 @@ Es una plataforma que permite a los usuarios registrarse, iniciar sesión, crear
 ├── test                # Pruebas
 ├── web                 # Configuración específica para Web
 └── windows             # Configuración específica para Windows
-
+```
 ## Instalación
 
 ---
