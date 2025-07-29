@@ -53,7 +53,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBzbolZRScYipZ0WFrxPcaKUo0mH4lUUxA',
+    apiKey: '?',
     appId: '1:1038269159201:android:9c1ad2f82247d57b065060',
     messagingSenderId: '1038269159201',
     projectId: 'aplicacion-luz',
