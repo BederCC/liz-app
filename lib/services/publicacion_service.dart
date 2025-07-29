@@ -72,10 +72,7 @@ class PublicacionService {
 
     if (doc.exists) {
       await likeRef.delete();
-      // Decrementar contador en la publicación
-      await _firestore.collection('publicaciones').doc(publicacionId).update({
-        'likesCount': FieldValue.increment(-1),
-      });
+      // Ya no actualizamos el contador en la publicación
     } else {
       await likeRef.set({
         'publicacionId': publicacionId,
@@ -83,19 +80,17 @@ class PublicacionService {
         'fecha': FieldValue.serverTimestamp(),
         'tipo': 'like',
       });
-      // Incrementar contador en la publicación
-      await _firestore.collection('publicaciones').doc(publicacionId).update({
-        'likesCount': FieldValue.increment(1),
-      });
+      // Ya no actualizamos el contador en la publicación
     }
   }
 
   Future<int> getLikesCount(String publicacionId) async {
     final snapshot = await _firestore
-        .collection('publicaciones')
-        .doc(publicacionId)
+        .collection('reacciones')
+        .where('publicacionId', isEqualTo: publicacionId)
+        .where('tipo', isEqualTo: 'like')
         .get();
-    return (snapshot.data()?['likesCount'] as int?) ?? 0;
+    return snapshot.docs.length;
   }
 
   Future<bool> hasUserLiked(String publicacionId) async {
@@ -164,14 +159,10 @@ class PublicacionService {
 
   Stream<int> getLikesCountStream(String publicacionId) {
     return _firestore
-        .collection('publicaciones')
-        .doc(publicacionId)
+        .collection('reacciones')
+        .where('publicacionId', isEqualTo: publicacionId)
+        .where('tipo', isEqualTo: 'like')
         .snapshots()
-        .map((snapshot) {
-          if (!snapshot.exists) return 0;
-          final data = snapshot.data();
-          if (data == null) return 0;
-          return (data['likesCount'] as int?) ?? 0;
-        });
+        .map((snapshot) => snapshot.docs.length);
   }
 }

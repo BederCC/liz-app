@@ -234,14 +234,10 @@ class PublicacionItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('publicaciones')
-                .doc(publicacionId)
-                .snapshots(),
+          StreamBuilder<int>(
+            stream: service.getLikesCountStream(publicacionId),
             builder: (context, snapshot) {
-              final likesCount =
-                  snapshot.data?.data()?['likesCount'] as int? ?? 0;
+              final likesCount = snapshot.data ?? 0;
               return Row(
                 children: [
                   Container(
