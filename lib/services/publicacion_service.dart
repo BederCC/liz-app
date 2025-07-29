@@ -59,4 +59,95 @@ class PublicacionService {
   Future<void> eliminarPublicacion(String publicacionId) async {
     await _firestore.collection('publicaciones').doc(publicacionId).delete();
   }
+
+  Future<void> toggleLike(String publicacionId) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Usuario no autenticado');
+
+    final likeRef = _firestore
+        .collection('reacciones')
+        .doc('${publicacionId}_${user.uid}');
+
+    final doc = await likeRef.get();
+
+    if (doc.exists) {
+      await likeRef.delete();
+      // Decrementar contador en la publicación
+      await _firestore.collection('publicaciones').doc(publicacionId).update({
+        'likesCount': FieldValue.increment(-1),
+      });
+    } else {
+      await likeRef.set({
+        'publicacionId': publicacionId,
+        'usuarioId': user.uid,
+        'fecha': FieldValue.serverTimestamp(),
+        'tipo': 'like',
+      });
+      // Incrementar contador en la publicación
+      await _firestore.collection('publicaciones').doc(publicacionId).update({
+        'likesCount': FieldValue.increment(1),
+      });
+    }
+  }
+
+  Future<int> getLikesCount(String publicacionId) async {
+    final snapshot = await _firestore
+        .collection('publicaciones')
+        .doc(publicacionId)
+        .get();
+    return (snapshot.data()?['likesCount'] as int?) ?? 0;
+  }
+
+  Future<bool> hasUserLiked(String publicacionId) async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final doc = await _firestore
+        .collection('reacciones')
+        .doc('${publicacionId}_${user.uid}')
+        .get();
+    return doc.exists;
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerComentarios(
+    String publicacionId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('comentarios')
+        .where('publicacionId', isEqualTo: publicacionId)
+        .orderBy('fecha', descending: false)
+        .get();
+
+    return await Future.wait(
+      snapshot.docs.map((doc) async {
+        final data = doc.data();
+        final userDoc = await _firestore
+            .collection('usuarios')
+            .doc(data['usuarioId'])
+            .get();
+        return {
+          'id': doc.id,
+          'usuarioId': data['usuarioId'],
+          'usuarioNombre': userDoc.data()?['nombre'] ?? 'Usuario',
+          'contenido': data['contenido'],
+          'fecha': data['fecha'],
+        };
+      }),
+    );
+  }
+
+  Future<void> agregarComentario({
+    required String publicacionId,
+    required String contenido,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Usuario no autenticado');
+
+    await _firestore.collection('comentarios').add({
+      'publicacionId': publicacionId,
+      'usuarioId': user.uid,
+      'contenido': contenido,
+      'fecha': FieldValue.serverTimestamp(),
+    });
+  }
 }
