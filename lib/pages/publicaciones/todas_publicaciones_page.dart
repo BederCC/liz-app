@@ -31,46 +31,56 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Todas las Publicaciones'),
+        backgroundColor: Colors.pink.shade100,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.pink.shade800),
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) => false,
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('publicaciones')
-              .orderBy('fechaPublicacion', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final doc = snapshot.data!.docs[index];
-                final publicacionId = doc.id;
-                _comentariosExpandidos.putIfAbsent(publicacionId, () => false);
-                _comentarioControllers.putIfAbsent(
-                  publicacionId,
-                  () => TextEditingController(),
+      body: Container(
+        color: Colors.pink.shade50,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) => false,
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('publicaciones')
+                .orderBy('fechaPublicacion', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(color: Colors.pink.shade600),
                 );
+              }
 
-                return PublicacionItem(
-                  key: ValueKey(publicacionId),
-                  doc: doc,
-                  publicacionId: publicacionId,
-                  service: publicacionService,
-                  isCommentsExpanded:
-                      _comentariosExpandidos[publicacionId] ?? false,
-                  onToggleLike: () =>
-                      _handleLike(publicacionService, publicacionId),
-                  onToggleComments: () => _handleComments(publicacionId),
-                );
-              },
-            );
-          },
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final doc = snapshot.data!.docs[index];
+                  final publicacionId = doc.id;
+                  _comentariosExpandidos.putIfAbsent(
+                    publicacionId,
+                    () => false,
+                  );
+                  _comentarioControllers.putIfAbsent(
+                    publicacionId,
+                    () => TextEditingController(),
+                  );
+
+                  return PublicacionItem(
+                    key: ValueKey(publicacionId),
+                    doc: doc,
+                    publicacionId: publicacionId,
+                    service: publicacionService,
+                    isCommentsExpanded:
+                        _comentariosExpandidos[publicacionId] ?? false,
+                    onToggleLike: () =>
+                        _handleLike(publicacionService, publicacionId),
+                    onToggleComments: () => _handleComments(publicacionId),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -141,7 +151,7 @@ class PublicacionItem extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +159,7 @@ class PublicacionItem extends StatelessWidget {
           _buildHeader(data, fecha),
           _buildContent(data),
           _buildStats(context),
-          const Divider(height: 1, thickness: 1),
+          const Divider(height: 1, thickness: 1, color: Colors.grey),
           _buildActions(context),
           if (isCommentsExpanded) _buildCommentsSection(),
         ],
@@ -175,14 +185,15 @@ class PublicacionItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: Colors.pink.shade100,
                 child: data['esAnonimo'] == true
-                    ? const Icon(Icons.person, size: 20)
+                    ? Icon(Icons.person, size: 20, color: Colors.pink.shade800)
                     : Text(
                         nombreUsuario.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: Colors.pink.shade800,
                         ),
                       ),
               ),
@@ -200,7 +211,10 @@ class PublicacionItem extends StatelessWidget {
                     ),
                     Text(
                       DateFormat('dd MMM yyyy · HH:mm').format(fecha),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -243,19 +257,19 @@ class PublicacionItem extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.pink.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.thumb_up,
                       size: 14,
-                      color: Colors.blue,
+                      color: Colors.pink.shade600,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     likesCount.toString(),
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               );
@@ -271,7 +285,7 @@ class PublicacionItem extends StatelessWidget {
               final commentCount = snapshot.data?.docs.length ?? 0;
               return Text(
                 '$commentCount comentarios',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               );
             },
           ),
@@ -301,12 +315,12 @@ class PublicacionItem extends StatelessWidget {
                   return TextButton.icon(
                     icon: Icon(
                       hasLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                      color: hasLiked ? Colors.blue : Colors.grey,
+                      color: hasLiked ? Colors.pink.shade600 : Colors.grey,
                     ),
                     label: Text(
                       'Me gusta ${likesCount > 0 ? '($likesCount)' : ''}',
                       style: TextStyle(
-                        color: hasLiked ? Colors.blue : Colors.grey,
+                        color: hasLiked ? Colors.pink.shade600 : Colors.grey,
                       ),
                     ),
                     onPressed: onToggleLike,
@@ -320,18 +334,18 @@ class PublicacionItem extends StatelessWidget {
               isCommentsExpanded
                   ? Icons.mode_comment
                   : Icons.mode_comment_outlined,
-              color: isCommentsExpanded ? Colors.blue : Colors.grey,
+              color: isCommentsExpanded ? Colors.pink.shade600 : Colors.grey,
             ),
             label: Text(
               'Comentar',
               style: TextStyle(
-                color: isCommentsExpanded ? Colors.blue : Colors.grey,
+                color: isCommentsExpanded ? Colors.pink.shade600 : Colors.grey,
               ),
             ),
             onPressed: onToggleComments,
           ),
           TextButton.icon(
-            icon: const Icon(Icons.share_outlined, color: Colors.grey),
+            icon: Icon(Icons.share_outlined, color: Colors.grey),
             label: const Text(
               'Compartir',
               style: TextStyle(color: Colors.grey),
@@ -352,16 +366,19 @@ class PublicacionItem extends StatelessWidget {
             future: service.obtenerComentarios(publicacionId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: CircularProgressIndicator(color: Colors.pink.shade600),
                 );
               }
 
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No hay comentarios aún'),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    'No hay comentarios aún',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
                 );
               }
 
@@ -377,11 +394,15 @@ class PublicacionItem extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
                       radius: 16,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: Colors.pink.shade100,
                       child: Text(
                         comentario['usuarioNombre']
                             .substring(0, 1)
                             .toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.pink.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     title: Column(
@@ -394,7 +415,10 @@ class PublicacionItem extends StatelessWidget {
                         Text(comentario['contenido']),
                       ],
                     ),
-                    subtitle: Text(DateFormat('dd MMM HH:mm').format(fecha)),
+                    subtitle: Text(
+                      DateFormat('dd MMM HH:mm').format(fecha),
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                   );
                 },
               );
@@ -418,28 +442,45 @@ class PublicacionItem extends StatelessWidget {
               controller: controller,
               decoration: InputDecoration(
                 hintText: 'Escribe un comentario...',
+                hintStyle: TextStyle(color: Colors.grey.shade600),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 16,
+                  vertical: 12,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(color: Colors.pink.shade200),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(color: Colors.pink.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(color: Colors.pink.shade400),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.send, color: Colors.blue),
-            onPressed: () async {
-              final contenido = controller.text.trim();
-              if (contenido.isNotEmpty) {
-                await service.agregarComentario(
-                  publicacionId: publicacionId,
-                  contenido: contenido,
-                );
-                controller.clear();
-              }
-            },
+          const SizedBox(width: 8),
+          CircleAvatar(
+            backgroundColor: Colors.pink.shade600,
+            radius: 20,
+            child: IconButton(
+              icon: const Icon(Icons.send, color: Colors.white, size: 16),
+              onPressed: () async {
+                final contenido = controller.text.trim();
+                if (contenido.isNotEmpty) {
+                  await service.agregarComentario(
+                    publicacionId: publicacionId,
+                    contenido: contenido,
+                  );
+                  controller.clear();
+                }
+              },
+            ),
           ),
         ],
       ),

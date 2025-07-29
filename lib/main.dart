@@ -478,7 +478,12 @@ class _LoginPageState extends State<LoginPage> {
                                         double.infinity,
                                         50,
                                       ),
-                                      backgroundColor: Colors.indigo.shade600,
+                                      backgroundColor: const Color.fromARGB(
+                                        255,
+                                        234,
+                                        130,
+                                        204,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
@@ -642,17 +647,31 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.pink.shade100, Colors.pink.shade50],
+            ),
+          ),
+          child: Center(
+            child: CircularProgressIndicator(color: Colors.pink.shade600),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi Perfil'),
-        backgroundColor: Colors.pink.shade200,
+        backgroundColor: Colors.pink.shade100,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.pink.shade800),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.pink.shade800),
             onPressed: () => FirebaseAuth.instance.signOut(),
             tooltip: 'Cerrar sesión',
           ),
@@ -663,10 +682,7 @@ class _ProfilePageState extends State<ProfilePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color.fromARGB(255, 178, 178, 179),
-              const Color.fromARGB(255, 249, 230, 255),
-            ],
+            colors: [Colors.pink.shade100, Colors.pink.shade50],
           ),
         ),
         child: SingleChildScrollView(
@@ -686,11 +702,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: Colors.indigo.shade100,
+                        backgroundColor: Colors.pink.shade100,
                         child: Icon(
                           Icons.person,
                           size: 40,
-                          color: Colors.indigo.shade800,
+                          color: Colors.pink.shade800,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -749,20 +765,19 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       if (!widget.user.emailVerified) ...[
                         _isVerificationEmailSending
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: Colors.pink.shade600,
                                 ),
                               )
                             : TextButton(
                                 onPressed: _sendVerificationEmail,
                                 child: Text(
                                   'Enviar verificación',
-                                  style: TextStyle(
-                                    color: Colors.indigo.shade800,
-                                  ),
+                                  style: TextStyle(color: Colors.pink.shade800),
                                 ),
                               ),
                       ],
@@ -823,13 +838,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: _navigateToProfileUpdate,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color.fromARGB(255, 157, 193, 255),
+                  backgroundColor: Colors.pink.shade600,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 3,
                 ),
-                child: const Text('Actualizar Datos'),
+                child: const Text(
+                  'Actualizar Datos',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
               const SizedBox(height: 15),
 
@@ -840,13 +858,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color.fromARGB(255, 157, 193, 255),
+                  backgroundColor: Colors.pink.shade600,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 3,
                 ),
-                child: const Text('Ver Categorías'),
+                child: const Text(
+                  'Ver Categorías',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
               const SizedBox(height: 15),
 
@@ -872,13 +893,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(0, 50),
-                  backgroundColor: const Color.fromARGB(255, 214, 167, 253),
+                  backgroundColor: Colors.purple.shade400,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 3,
                 ),
-                child: const Text('Mis Publicaciones'),
+                child: const Text(
+                  'Mis Publicaciones',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -889,13 +913,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(0, 50),
-                  backgroundColor: const Color.fromARGB(255, 214, 167, 253),
+                  backgroundColor: Colors.purple.shade400,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 3,
                 ),
-                child: const Text('Ver Publicaciones'),
+                child: const Text(
+                  'Ver Publicaciones',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -952,7 +979,10 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 10),
         Text(
           'Completa tu perfil para desbloquear estas funciones',
-          style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
+          style: TextStyle(
+            color: Colors.pink.shade800,
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
