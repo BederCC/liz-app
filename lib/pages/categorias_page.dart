@@ -58,80 +58,121 @@ class _CategoriasPageState extends State<CategoriasPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categorías'),
+        backgroundColor: Colors.pink.shade100,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.pink.shade800),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: Colors.pink.shade800),
             onPressed: _cargarCategorias,
             tooltip: 'Recargar',
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Buscar categorías',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (value) => setState(() {}),
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : categoriasFiltradas.isEmpty
-                ? const Center(child: Text('No se encontraron categorías'))
-                : RefreshIndicator(
-                    onRefresh: _cargarCategorias,
-                    child: ListView.builder(
-                      itemCount: categoriasFiltradas.length,
-                      itemBuilder: (context, index) {
-                        final categoria = categoriasFiltradas[index];
-                        return _buildCategoriaItem(categoria);
-                      },
-                    ),
+      body: Container(
+        color: Colors.pink.shade50,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Buscar categorías',
+                  labelStyle: TextStyle(color: Colors.pink.shade600),
+                  prefixIcon: Icon(Icons.search, color: Colors.pink.shade600),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.pink.shade200),
                   ),
-          ),
-        ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.pink.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.pink.shade400),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.pink.shade600),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                ),
+                onChanged: (value) => setState(() {}),
+              ),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.pink.shade600,
+                      ),
+                    )
+                  : categoriasFiltradas.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No se encontraron categorías',
+                        style: TextStyle(
+                          color: Colors.pink.shade800,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: Colors.pink.shade600,
+                      onRefresh: _cargarCategorias,
+                      child: ListView.builder(
+                        itemCount: categoriasFiltradas.length,
+                        itemBuilder: (context, index) {
+                          final categoria = categoriasFiltradas[index];
+                          return _buildCategoriaItem(categoria);
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarDialogoNuevaCategoria(context),
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.pink.shade600,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   Widget _buildCategoriaItem(Categoria categoria) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: const Icon(Icons.category, color: Colors.blue),
-        title: Text(categoria.nombre),
+        leading: Icon(Icons.category, color: Colors.pink.shade600),
+        title: Text(
+          categoria.nombre,
+          style: TextStyle(
+            color: Colors.grey.shade800,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Creada: ${DateFormat('dd/MM/yyyy').format(categoria.fechaCreacion)}',
+              style: TextStyle(color: Colors.grey.shade600),
             ),
             if (categoria.ultimaActualizacion != null)
               Text(
                 'Editada: ${DateFormat('dd/MM/yyyy').format(categoria.ultimaActualizacion!)}',
+                style: TextStyle(color: Colors.grey.shade600),
               ),
           ],
         ),
@@ -139,12 +180,12 @@ class _CategoriasPageState extends State<CategoriasPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.orange),
+              icon: Icon(Icons.edit, color: Colors.pink.shade600),
               onPressed: () =>
                   _mostrarDialogoEditarCategoria(context, categoria),
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: Icon(Icons.delete, color: Colors.pink.shade300),
               onPressed: () =>
                   _mostrarDialogoConfirmarEliminacion(context, categoria.id),
             ),
@@ -161,21 +202,45 @@ class _CategoriasPageState extends State<CategoriasPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Nueva Categoría'),
+          backgroundColor: Colors.pink.shade50,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text(
+            'Nueva Categoría',
+            style: TextStyle(color: Colors.pink.shade800),
+          ),
           content: TextField(
             controller: nombreController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Nombre de la categoría',
+              labelStyle: TextStyle(color: Colors.pink.shade600),
               hintText: 'Ej: Deportes',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade400),
+              ),
             ),
             autofocus: true,
+            style: TextStyle(color: Colors.grey.shade800),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.pink.shade800),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 if (nombreController.text.trim().isNotEmpty) {
                   Navigator.pop(context);
@@ -185,16 +250,28 @@ class _CategoriasPageState extends State<CategoriasPage> {
                     );
                     await _cargarCategorias();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Categoría creada')),
+                      SnackBar(
+                        content: const Text('Categoría creada'),
+                        backgroundColor: Colors.pink.shade600,
+                      ),
                     );
                   } catch (e) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red.shade400,
+                      ),
+                    );
                   }
                 }
               },
-              child: const Text('Crear'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink.shade600,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Crear', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -212,18 +289,49 @@ class _CategoriasPageState extends State<CategoriasPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Editar Categoría'),
+          backgroundColor: Colors.pink.shade50,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text(
+            'Editar Categoría',
+            style: TextStyle(
+              color: Colors.pink.shade800,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: TextField(
             controller: nombreController,
-            decoration: const InputDecoration(labelText: 'Nuevo nombre'),
+            decoration: InputDecoration(
+              labelText: 'Nuevo nombre',
+              labelStyle: TextStyle(color: Colors.pink.shade600),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.pink.shade400),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
             autofocus: true,
+            style: TextStyle(color: Colors.grey.shade800),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.pink.shade800),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 if (nombreController.text.trim().isNotEmpty) {
                   Navigator.pop(context);
@@ -234,16 +342,31 @@ class _CategoriasPageState extends State<CategoriasPage> {
                     );
                     await _cargarCategorias();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Categoría actualizada')),
+                      SnackBar(
+                        content: const Text('Categoría actualizada'),
+                        backgroundColor: Colors.pink.shade600,
+                      ),
                     );
                   } catch (e) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red.shade400,
+                      ),
+                    );
                   }
                 }
               },
-              child: const Text('Guardar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink.shade600,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Guardar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -259,33 +382,59 @@ class _CategoriasPageState extends State<CategoriasPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirmar Eliminación'),
-          content: const Text(
+          backgroundColor: Colors.pink.shade50,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text(
+            'Confirmar Eliminación',
+            style: TextStyle(
+              color: Colors.pink.shade800,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
             '¿Estás seguro de eliminar esta categoría? Esta acción no se puede deshacer.',
+            style: TextStyle(color: Colors.grey.shade800),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.pink.shade800),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 Navigator.pop(context);
                 try {
                   await _categoriaService.eliminarCategoria(categoriaId);
                   await _cargarCategorias();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Categoría eliminada')),
+                    SnackBar(
+                      content: const Text('Categoría eliminada'),
+                      backgroundColor: Colors.pink.shade600,
+                    ),
                   );
                 } catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red.shade400,
+                    ),
+                  );
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade400,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               child: const Text(
                 'Eliminar',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ],

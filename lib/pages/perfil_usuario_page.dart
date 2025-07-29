@@ -92,6 +92,40 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
     }
   }
 
+  // En el método que guarda los datos en PerfilUsuarioPage
+  Future<void> _guardarDatos() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Crear documento en Firestore por primera vez con todos los datos
+      await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).set(
+        {
+          'nombre': _nombreController.text,
+          'apellido': _apellidoController.text,
+          'telefono': _telefonoController.text,
+          'email': user.email,
+          'creado': FieldValue.serverTimestamp(),
+          'verificado': user.emailVerified,
+          'perfilCompleto':
+              true, // Siempre true porque se crea al completar datos
+        },
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Perfil creado y actualizado correctamente'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al guardar datos: $e')));
+    }
+  }
+
   @override
   void dispose() {
     _nombreController.dispose();
@@ -103,55 +137,161 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar Perfil')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Por favor ingresa tu nombre';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _apellidoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Apellido',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _telefonoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 24),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: _updateProfile,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                        child: const Text('Guardar Cambios'),
+      appBar: AppBar(
+        title: const Text('Editar Perfil'),
+        backgroundColor: Colors.pink.shade100,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.pink.shade800),
+      ),
+      body: Container(
+        color: Colors.pink.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _nombreController,
+                            decoration: InputDecoration(
+                              labelText: 'Nombre',
+                              labelStyle: TextStyle(
+                                color: Colors.pink.shade600,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.person,
+                                color: Colors.pink.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade400,
+                                ),
+                              ),
+                            ),
+                            style: TextStyle(color: Colors.grey.shade800),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Por favor ingresa tu nombre';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _apellidoController,
+                            decoration: InputDecoration(
+                              labelText: 'Apellido',
+                              labelStyle: TextStyle(
+                                color: Colors.pink.shade600,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: Colors.pink.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade400,
+                                ),
+                              ),
+                            ),
+                            style: TextStyle(color: Colors.grey.shade800),
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            controller: _telefonoController,
+                            decoration: InputDecoration(
+                              labelText: 'Teléfono',
+                              labelStyle: TextStyle(
+                                color: Colors.pink.shade600,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.phone,
+                                color: Colors.pink.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.pink.shade400,
+                                ),
+                              ),
+                            ),
+                            style: TextStyle(color: Colors.grey.shade800),
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ],
                       ),
-              ],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  _isLoading
+                      ? CircularProgressIndicator(color: Colors.pink.shade600)
+                      : ElevatedButton(
+                          onPressed: _updateProfile,
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            backgroundColor: Colors.pink.shade600,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            'Guardar Cambios',
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                ],
+              ),
             ),
           ),
         ),
