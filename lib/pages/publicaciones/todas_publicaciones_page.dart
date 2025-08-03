@@ -46,11 +46,6 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
         break;
       case 4:
         FirebaseAuth.instance.signOut();
-        // Redirigir al usuario a la página de inicio de sesión
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/', // Asumiendo que la ruta de login es la raíz
-          (route) => false,
-        );
         break;
     }
   }
@@ -207,7 +202,6 @@ class PublicacionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = doc.data() as Map<String, dynamic>;
     final fecha = (data['fechaPublicacion'] as Timestamp).toDate();
-    final imageUrl = data['imageUrl'] as String?;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -218,7 +212,25 @@ class PublicacionItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(data, fecha),
-          _buildContent(data, imageUrl),
+          _buildContent(data),
+          // Nuevo recuadro para la imagen
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Icon(Icons.image, size: 50, color: Colors.grey.shade600),
+              ),
+            ),
+          ),
           _buildStats(context),
           const Divider(height: 1, thickness: 1, color: Colors.grey),
           _buildActions(context),
@@ -288,7 +300,7 @@ class PublicacionItem extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(Map<String, dynamic> data, String? imageUrl) {
+  Widget _buildContent(Map<String, dynamic> data) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -307,44 +319,7 @@ class PublicacionItem extends StatelessWidget {
             data['contenido'] ?? '',
             style: const TextStyle(fontSize: 15, color: Colors.black),
           ),
-          if (imageUrl != null && imageUrl.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  loadingBuilder:
-                      (
-                        BuildContext context,
-                        Widget child,
-                        ImageChunkEvent? loadingProgress,
-                      ) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                  errorBuilder:
-                      (
-                        BuildContext context,
-                        Object error,
-                        StackTrace? stackTrace,
-                      ) {
-                        return const SizedBox.shrink(); // Puedes mostrar un icono de error aquí si lo deseas
-                      },
-                ),
-              ),
-            )
-          else
-            const SizedBox(height: 16), // Espacio si no hay imagen
+          const SizedBox(height: 16),
         ],
       ),
     );
