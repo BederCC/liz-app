@@ -4,6 +4,7 @@ import 'package:aplicacion_luz/services/categoria_service.dart';
 import 'package:aplicacion_luz/services/publicacion_service.dart';
 import 'package:aplicacion_luz/models/categoria_model.dart';
 import 'package:aplicacion_luz/models/publicacion_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CrearPublicacionPage extends StatefulWidget {
   final Publicacion? publicacionExistente;
@@ -22,6 +23,9 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
   String? _categoriaSeleccionada;
   bool _esAnonimo = false;
   bool _isLoading = false;
+  late CategoriaService _categoriaService;
+  List<Categoria> _categorias = [];
+  int _selectedIndex = 2; // Índice para "Mis Publicaciones"
 
   @override
   void initState() {
@@ -35,206 +39,52 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final categoriaService = Provider.of<CategoriaService>(
-      context,
-      listen: false,
-    );
-    final publicacionService = Provider.of<PublicacionService>(
-      context,
-      listen: false,
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.publicacionExistente == null
-              ? 'Nueva Publicación'
-              : 'Editar Publicación',
-          style: TextStyle(color: Colors.pink.shade800),
-        ),
-        backgroundColor: Colors.pink.shade100,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.pink.shade800),
-      ),
-      body: Container(
-        color: Colors.pink.shade50,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  FutureBuilder<List<Categoria>>(
-                    future: categoriaService.obtenerCategorias(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.pink.shade600,
-                          ),
-                        );
-                      }
-
-                      final categorias = snapshot.data ?? [];
-
-                      return Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: DropdownButtonFormField<String>(
-                            value: _categoriaSeleccionada,
-                            hint: Text(
-                              'Selecciona una categoría',
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                            ),
-                            dropdownColor: Colors.white,
-                            icon: Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.pink.shade600,
-                            ),
-                            items: categorias.map((categoria) {
-                              return DropdownMenuItem<String>(
-                                value: categoria.id,
-                                child: Text(
-                                  categoria.nombre,
-                                  style: TextStyle(color: Colors.grey.shade800),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _categoriaSeleccionada = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Debes seleccionar una categoría';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextFormField(
-                      controller: _tituloController,
-                      decoration: InputDecoration(
-                        labelText: 'Título',
-                        labelStyle: TextStyle(color: Colors.pink.shade600),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      style: TextStyle(color: Colors.grey.shade800),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa un título';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextFormField(
-                      controller: _contenidoController,
-                      decoration: InputDecoration(
-                        labelText: 'Contenido',
-                        labelStyle: TextStyle(color: Colors.pink.shade600),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      style: TextStyle(color: Colors.grey.shade800),
-                      maxLines: 5,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa el contenido';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SwitchListTile(
-                      title: Text(
-                        'Publicación anónima',
-                        style: TextStyle(color: Colors.grey.shade800),
-                      ),
-                      value: _esAnonimo,
-                      activeColor: Colors.pink.shade600,
-                      onChanged: (value) {
-                        setState(() {
-                          _esAnonimo = value;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () => _crearOActualizarPublicacion(
-                            context,
-                            publicacionService,
-                          ),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.pink.shade600,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: _isLoading
-                        ? CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          )
-                        : Text(
-                            widget.publicacionExistente == null
-                                ? 'Publicar'
-                                : 'Actualizar',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _categoriaService = Provider.of<CategoriaService>(context, listen: false);
+    _cargarCategorias();
   }
 
-  Future<void> _crearOActualizarPublicacion(
-    BuildContext context,
-    PublicacionService service,
-  ) async {
-    if (_formKey.currentState!.validate() && _categoriaSeleccionada != null) {
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.popAndPushNamed(context, '/perfil');
+        break;
+      case 1:
+        Navigator.popAndPushNamed(context, '/categorias');
+        break;
+      case 2:
+        Navigator.popAndPushNamed(context, '/publicaciones');
+        break;
+      case 3:
+        Navigator.popAndPushNamed(context, '/todas-publicaciones');
+        break;
+      case 4:
+        FirebaseAuth.instance.signOut();
+        // Redirigir al usuario a la página de inicio de sesión
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/', // Asumiendo que la ruta de login es la raíz
+          (route) => false,
+        );
+        break;
+    }
+  }
+
+  Future<void> _cargarCategorias() async {
+    final categorias = await _categoriaService.obtenerCategorias();
+    setState(() {
+      _categorias = categorias;
+    });
+  }
+
+  Future<void> _guardarPublicacion() async {
+    if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
+      final service = Provider.of<PublicacionService>(context, listen: false);
 
       try {
         if (widget.publicacionExistente == null) {
@@ -245,9 +95,9 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
             esAnonimo: _esAnonimo,
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Publicación creada con éxito'),
-              backgroundColor: Colors.pink.shade600,
+            const SnackBar(
+              content: Text('Publicación creada con éxito'),
+              backgroundColor: Colors.black,
             ),
           );
         } else {
@@ -259,9 +109,9 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
             esAnonimo: _esAnonimo,
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Publicación actualizada con éxito'),
-              backgroundColor: Colors.pink.shade600,
+            const SnackBar(
+              content: Text('Publicación actualizada con éxito'),
+              backgroundColor: Colors.black,
             ),
           );
         }
@@ -285,5 +135,181 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
     _tituloController.dispose();
     _contenidoController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.publicacionExistente == null
+              ? 'Crear Publicación'
+              : 'Editar Publicación',
+          style: const TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _tituloController,
+                decoration: InputDecoration(
+                  labelText: 'Título',
+                  labelStyle: const TextStyle(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.black),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese un título';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _contenidoController,
+                decoration: InputDecoration(
+                  labelText: 'Contenido',
+                  labelStyle: const TextStyle(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.black),
+                maxLines: 5,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese el contenido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _categoriaSeleccionada,
+                decoration: InputDecoration(
+                  labelText: 'Categoría',
+                  labelStyle: const TextStyle(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                dropdownColor: Colors.white,
+                style: const TextStyle(color: Colors.black),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+                items: _categorias.map((categoria) {
+                  return DropdownMenuItem(
+                    value: categoria.id,
+                    child: Text(
+                      categoria.nombre,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _categoriaSeleccionada = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Por favor, seleccione una categoría';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text(
+                  'Publicar anónimamente',
+                  style: TextStyle(color: Colors.black),
+                ),
+                value: _esAnonimo,
+                onChanged: (bool value) {
+                  setState(() {
+                    _esAnonimo = value;
+                  });
+                },
+                activeColor: Colors.black,
+                activeTrackColor: Colors.grey.shade300,
+                inactiveThumbColor: Colors.grey,
+                inactiveTrackColor: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 30),
+              _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.black),
+                    )
+                  : ElevatedButton(
+                      onPressed: _guardarPublicacion,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        widget.publicacionExistente == null
+                            ? 'Crear Publicación'
+                            : 'Actualizar Publicación',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: 'Categorías',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.my_library_books),
+            label: 'Mis Publicaciones',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Todas'),
+          BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Salir'),
+        ],
+      ),
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:aplicacion_luz/models/publicacion_model.dart';
 import 'package:aplicacion_luz/services/publicacion_service.dart';
 import 'package:aplicacion_luz/pages/publicaciones/crear_publicacion_page.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PublicacionesPage extends StatefulWidget {
   const PublicacionesPage({super.key});
@@ -14,6 +15,7 @@ class PublicacionesPage extends StatefulWidget {
 
 class _PublicacionesPageState extends State<PublicacionesPage> {
   late final PublicacionService _publicacionService;
+  int _selectedIndex = 2;
 
   @override
   void didChangeDependencies() {
@@ -24,33 +26,65 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
     );
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.popAndPushNamed(context, '/perfil');
+        break;
+      case 1:
+        Navigator.popAndPushNamed(context, '/categorias');
+        break;
+      case 2:
+        // Ya estamos en esta página
+        break;
+      case 3:
+        Navigator.popAndPushNamed(context, '/todas-publicaciones');
+        break;
+      case 4:
+        FirebaseAuth.instance.signOut();
+        // Redirigir al usuario a la página de inicio de sesión
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/', // Asumiendo que la ruta de login es la raíz
+          (route) => false,
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Publicaciones'),
-        backgroundColor: Colors.pink.shade100,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.pink.shade800),
+        title: const Text(
+          'Mis Publicaciones',
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
-            icon: Icon(Icons.add, color: Colors.pink.shade800),
+            icon: const Icon(Icons.add, color: Colors.black),
             onPressed: () => _navegarACrearPublicacion(context),
             tooltip: 'Crear nueva publicación',
           ),
         ],
       ),
       body: Container(
-        color: Colors.pink.shade50,
+        color: Colors.white,
         child: RefreshIndicator(
-          color: Colors.pink.shade600,
+          color: Colors.black,
           onRefresh: _refreshPublicaciones,
           child: FutureBuilder<List<Publicacion>>(
             future: _publicacionService.obtenerPublicacionesDelUsuario(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(color: Colors.pink.shade600),
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.black),
                 );
               }
 
@@ -58,7 +92,7 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
                 return Center(
                   child: Text(
                     'Error: ${snapshot.error}',
-                    style: TextStyle(color: Colors.pink.shade800),
+                    style: const TextStyle(color: Colors.black),
                   ),
                 );
               }
@@ -66,10 +100,10 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
               final publicaciones = snapshot.data ?? [];
 
               if (publicaciones.isEmpty) {
-                return Center(
+                return const Center(
                   child: Text(
                     'No tienes publicaciones aún',
-                    style: TextStyle(color: Colors.pink.shade800, fontSize: 16),
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                 );
               }
@@ -93,8 +127,29 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navegarACrearPublicacion(context),
-        backgroundColor: Colors.pink.shade600,
+        backgroundColor: Colors.black,
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: 'Categorías',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.my_library_books),
+            label: 'Mis Publicaciones',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Todas'),
+          BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Salir'),
+        ],
       ),
     );
   }
@@ -127,31 +182,28 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.pink.shade50,
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text(
+        title: const Text(
           'Eliminar publicación',
-          style: TextStyle(
-            color: Colors.pink.shade800,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        content: Text(
+        content: const Text(
           '¿Estás seguro de que quieres eliminar esta publicación?',
-          style: TextStyle(color: Colors.grey.shade800),
+          style: TextStyle(color: Colors.black),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(
+            child: const Text(
               'Cancelar',
-              style: TextStyle(color: Colors.pink.shade800),
+              style: TextStyle(color: Colors.black),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
+              backgroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -170,16 +222,16 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
         await _publicacionService.eliminarPublicacion(publicacionId);
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Publicación eliminada'),
-            backgroundColor: Colors.pink.shade600,
+          const SnackBar(
+            content: Text('Publicación eliminada'),
+            backgroundColor: Colors.black,
           ),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al eliminar: $e'),
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -204,6 +256,7 @@ class _PublicacionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -214,23 +267,19 @@ class _PublicacionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     publicacion.titulo,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                      color: Colors.black,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.edit, size: 20, color: Colors.pink.shade600),
+                  icon: const Icon(Icons.edit, size: 20, color: Colors.black),
                   onPressed: onEdit,
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.delete,
-                    size: 20,
-                    color: Colors.pink.shade300,
-                  ),
+                  icon: const Icon(Icons.delete, size: 20, color: Colors.black),
                   onPressed: onDelete,
                 ),
               ],
@@ -245,15 +294,11 @@ class _PublicacionCard extends StatelessWidget {
               children: [
                 Chip(
                   backgroundColor: publicacion.esAnonimo
-                      ? Colors.pink.shade100
-                      : Colors.green.shade100,
+                      ? Colors.grey.shade200
+                      : Colors.grey.shade200,
                   label: Text(
                     publicacion.esAnonimo ? 'Anónimo' : 'Público',
-                    style: TextStyle(
-                      color: publicacion.esAnonimo
-                          ? Colors.pink.shade800
-                          : Colors.green.shade800,
-                    ),
+                    style: const TextStyle(color: Colors.black),
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
