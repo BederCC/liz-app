@@ -15,7 +15,7 @@ class PublicacionesPage extends StatefulWidget {
 
 class _PublicacionesPageState extends State<PublicacionesPage> {
   late final PublicacionService _publicacionService;
-  int _selectedIndex = 2;
+  int _selectedIndex = 1;
 
   @override
   void didChangeDependencies() {
@@ -36,21 +36,14 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
         Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        Navigator.popAndPushNamed(context, '/categorias');
+        Navigator.popAndPushNamed(context, '/publicaciones');
         break;
       case 2:
-        // Ya estamos en esta página
-        break;
-      case 3:
         Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
-      case 4:
+      case 3:
         FirebaseAuth.instance.signOut();
-        // Redirigir al usuario a la página de inicio de sesión
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/', // Asumiendo que la ruta de login es la raíz
-          (route) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
   }
@@ -139,10 +132,10 @@ class _PublicacionesPageState extends State<PublicacionesPage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',

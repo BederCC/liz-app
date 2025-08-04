@@ -6,6 +6,7 @@ class Publicacion {
   final String categoriaId;
   final String titulo;
   final String contenido;
+  final String imagenUrl;
   final bool esAnonimo;
   final DateTime fechaPublicacion;
 
@@ -15,6 +16,7 @@ class Publicacion {
     required this.categoriaId,
     required this.titulo,
     required this.contenido,
+    required this.imagenUrl,
     required this.esAnonimo,
     required this.fechaPublicacion,
   });
@@ -27,6 +29,7 @@ class Publicacion {
       categoriaId: data['categoriaId'],
       titulo: data['titulo'],
       contenido: data['contenido'],
+      imagenUrl: data['imagenUrl'] ?? '',
       esAnonimo: data['esAnonimo'] ?? false,
       fechaPublicacion: (data['fechaPublicacion'] as Timestamp).toDate(),
     );
@@ -38,6 +41,7 @@ class Publicacion {
       'categoriaId': categoriaId,
       'titulo': titulo,
       'contenido': contenido,
+      'imagenUrl': imagenUrl.isNotEmpty ? imagenUrl : null,
       'esAnonimo': esAnonimo,
       'fechaPublicacion': Timestamp.fromDate(fechaPublicacion),
     };

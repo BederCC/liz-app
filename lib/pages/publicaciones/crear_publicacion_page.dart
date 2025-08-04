@@ -20,12 +20,14 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
   final _formKey = GlobalKey<FormState>();
   final _tituloController = TextEditingController();
   final _contenidoController = TextEditingController();
+  final _imagenController =
+      TextEditingController(); // Nuevo controlador para la URL de la imagen
   String? _categoriaSeleccionada;
   bool _esAnonimo = false;
   bool _isLoading = false;
   late CategoriaService _categoriaService;
   List<Categoria> _categorias = [];
-  int _selectedIndex = 2; // Índice para "Mis Publicaciones"
+  int _selectedIndex = 1; // Índice para "Mis Publicaciones"
 
   @override
   void initState() {
@@ -33,6 +35,9 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
     if (widget.publicacionExistente != null) {
       _tituloController.text = widget.publicacionExistente!.titulo;
       _contenidoController.text = widget.publicacionExistente!.contenido;
+      _imagenController.text =
+          widget.publicacionExistente!.imagenUrl ??
+          ''; // Cargar URL de la imagen
       _categoriaSeleccionada = widget.publicacionExistente!.categoriaId;
       _esAnonimo = widget.publicacionExistente!.esAnonimo;
     }
@@ -55,21 +60,14 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
         Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        Navigator.popAndPushNamed(context, '/categorias');
-        break;
-      case 2:
         Navigator.popAndPushNamed(context, '/publicaciones');
         break;
-      case 3:
+      case 2:
         Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
-      case 4:
+      case 3:
         FirebaseAuth.instance.signOut();
-        // Redirigir al usuario a la página de inicio de sesión
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/', // Asumiendo que la ruta de login es la raíz
-          (route) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
   }
@@ -92,6 +90,7 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
             categoriaId: _categoriaSeleccionada!,
             titulo: _tituloController.text,
             contenido: _contenidoController.text,
+            imagenUrl: _imagenController.text, // Pasar el enlace de la imagen
             esAnonimo: _esAnonimo,
           );
           ScaffoldMessenger.of(context).showSnackBar(
@@ -106,6 +105,7 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
             categoriaId: _categoriaSeleccionada!,
             titulo: _tituloController.text,
             contenido: _contenidoController.text,
+            imagenUrl: _imagenController.text, // Pasar el enlace de la imagen
             esAnonimo: _esAnonimo,
           );
           ScaffoldMessenger.of(context).showSnackBar(
@@ -134,6 +134,7 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
   void dispose() {
     _tituloController.dispose();
     _contenidoController.dispose();
+    _imagenController.dispose(); // Liberar el controlador de imagen
     super.dispose();
   }
 
@@ -203,6 +204,23 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _imagenController,
+                decoration: InputDecoration(
+                  labelText: 'URL de la imagen (Opcional)',
+                  labelStyle: const TextStyle(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -298,10 +316,10 @@ class _CrearPublicacionPageState extends State<CrearPublicacionPage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',

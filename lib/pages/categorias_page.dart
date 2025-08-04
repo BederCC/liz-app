@@ -66,23 +66,14 @@ class _CategoriasPageState extends State<CategoriasPage> {
         Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        // Ya estamos en esta página
-        break;
-      case 2:
-        // En tu implementación, deberías verificar el perfil completo aquí
         Navigator.popAndPushNamed(context, '/publicaciones');
         break;
-      case 3:
-        // En tu implementación, deberías verificar el perfil completo aquí
+      case 2:
         Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
-      case 4:
+      case 3:
         FirebaseAuth.instance.signOut();
-        // Redirigir al usuario a la página de inicio de sesión
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/', // Asumiendo que la ruta de login es la raíz
-          (route) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
   }
@@ -185,10 +176,10 @@ class _CategoriasPageState extends State<CategoriasPage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',

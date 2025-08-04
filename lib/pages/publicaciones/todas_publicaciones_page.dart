@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:aplicacion_luz/services/publicacion_service.dart';
+import 'package:aplicacion_luz/services/categoria_service.dart';
 import 'package:aplicacion_luz/models/publicacion_model.dart';
+import 'package:aplicacion_luz/models/categoria_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class TodasPublicacionesPage extends StatefulWidget {
@@ -18,12 +20,22 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
   final Map<String, TextEditingController> _comentarioControllers = {};
   final Map<String, bool> _localLikes = {};
   final Map<String, int> _localLikesCount = {};
-  int _selectedIndex = 3;
+  int _selectedIndex = 2;
+
+  String? _categoriaSeleccionada;
+  List<Categoria> _categorias = [];
+  late CategoriaService _categoriaService;
 
   @override
-  void dispose() {
-    _comentarioControllers.values.forEach((controller) => controller.dispose());
-    super.dispose();
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _categoriaService = Provider.of<CategoriaService>(context, listen: false);
+    _cargarCategorias();
   }
 
   void _onItemTapped(int index) {
@@ -36,23 +48,49 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
         Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        Navigator.popAndPushNamed(context, '/categorias');
-        break;
-      case 2:
         Navigator.popAndPushNamed(context, '/publicaciones');
         break;
-      case 3:
-        // Ya estamos en esta página
+      case 2:
+        Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
-      case 4:
+      case 3:
         FirebaseAuth.instance.signOut();
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
+  }
+
+  Future<void> _cargarCategorias() async {
+    final categorias = await _categoriaService.obtenerCategorias();
+    setState(() {
+      _categorias = categorias;
+    });
+  }
+
+  @override
+  void dispose() {
+    _comentarioControllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final publicacionService = Provider.of<PublicacionService>(context);
+
+    Stream<QuerySnapshot> getPublicacionesStream() {
+      if (_categoriaSeleccionada == null) {
+        return FirebaseFirestore.instance
+            .collection('publicaciones')
+            .orderBy('fechaPublicacion', descending: true)
+            .snapshots();
+      } else {
+        return FirebaseFirestore.instance
+            .collection('publicaciones')
+            .where('categoriaId', isEqualTo: _categoriaSeleccionada)
+            .orderBy('fechaPublicacion', descending: true)
+            .snapshots();
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -66,52 +104,109 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
       ),
       body: Container(
         color: Colors.white,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) => false,
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('publicaciones')
-                .orderBy('fechaPublicacion', descending: true)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.black),
-                );
-              }
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _categoriaSeleccionada,
+                      decoration: InputDecoration(
+                        labelText: 'Filtrar por Categoría',
+                        labelStyle: const TextStyle(color: Colors.black),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.black,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black),
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Colors.black,
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todas las categorías'),
+                        ),
+                        ..._categorias.map((categoria) {
+                          return DropdownMenuItem(
+                            value: categoria.id,
+                            child: Text(categoria.nombre),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _categoriaSeleccionada = newValue;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) => false,
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: getPublicacionesStream(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.black),
+                      );
+                    }
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  final doc = snapshot.data!.docs.elementAt(index);
-                  final publicacionId = doc.id;
-                  _comentariosExpandidos.putIfAbsent(
-                    publicacionId,
-                    () => false,
-                  );
-                  _comentarioControllers.putIfAbsent(
-                    publicacionId,
-                    () => TextEditingController(),
-                  );
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = snapshot.data!.docs.elementAt(index);
+                        final publicacionId = doc.id;
+                        _comentariosExpandidos.putIfAbsent(
+                          publicacionId,
+                          () => false,
+                        );
+                        _comentarioControllers.putIfAbsent(
+                          publicacionId,
+                          () => TextEditingController(),
+                        );
 
-                  return PublicacionItem(
-                    key: ValueKey(publicacionId),
-                    doc: doc,
-                    publicacionId: publicacionId,
-                    service: publicacionService,
-                    isCommentsExpanded:
-                        _comentariosExpandidos[publicacionId] ?? false,
-                    onToggleLike: () =>
-                        _handleLike(publicacionService, publicacionId),
-                    onToggleComments: () => _handleComments(publicacionId),
-                    comentarioController:
-                        _comentarioControllers[publicacionId]!,
-                  );
-                },
-              );
-            },
-          ),
+                        return PublicacionItem(
+                          key: ValueKey(publicacionId),
+                          doc: doc,
+                          publicacionId: publicacionId,
+                          service: publicacionService,
+                          isCommentsExpanded:
+                              _comentariosExpandidos[publicacionId] ?? false,
+                          onToggleLike: () =>
+                              _handleLike(publicacionService, publicacionId),
+                          onToggleComments: () =>
+                              _handleComments(publicacionId),
+                          comentarioController:
+                              _comentarioControllers[publicacionId]!,
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -123,10 +218,10 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',
@@ -148,7 +243,6 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
         _localLikesCount[publicacionId] ??
         await service.getLikesCount(publicacionId);
 
-    // Actualización optimista
     setState(() {
       _localLikes[publicacionId] = !currentLikeStatus;
       _localLikesCount[publicacionId] = currentLikeStatus
@@ -159,7 +253,6 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
     try {
       await service.toggleLike(publicacionId);
     } catch (e) {
-      // Revertir en caso de error
       setState(() {
         _localLikes[publicacionId] = currentLikeStatus;
         _localLikesCount[publicacionId] = currentLikesCount;
@@ -202,6 +295,7 @@ class PublicacionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = doc.data() as Map<String, dynamic>;
     final fecha = (data['fechaPublicacion'] as Timestamp).toDate();
+    final imagenUrl = data['imagenUrl'] as String?;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -213,24 +307,23 @@ class PublicacionItem extends StatelessWidget {
         children: [
           _buildHeader(data, fecha),
           _buildContent(data),
-          // Nuevo recuadro para la imagen
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(10),
+          if (imagenUrl != null && imagenUrl.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
               ),
-              child: Center(
-                child: Icon(Icons.image, size: 50, color: Colors.grey.shade600),
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: NetworkImage(imagenUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
-          ),
           _buildStats(context),
           const Divider(height: 1, thickness: 1, color: Colors.grey),
           _buildActions(context),

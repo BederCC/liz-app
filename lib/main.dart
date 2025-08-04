@@ -458,19 +458,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/perfil');
+        Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        Navigator.pushNamed(context, '/categorias');
+        Navigator.popAndPushNamed(context, '/publicaciones');
         break;
       case 2:
-        Navigator.pushNamed(context, '/publicaciones');
+        Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
       case 3:
-        Navigator.pushNamed(context, '/todas-publicaciones');
-        break;
-      case 4:
         FirebaseAuth.instance.signOut();
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
   }
@@ -634,10 +632,10 @@ class _ProfilePageState extends State<ProfilePage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',

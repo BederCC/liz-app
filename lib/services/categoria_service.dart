@@ -22,11 +22,12 @@ class CategoriaService {
 
   Future<void> _crearCategoriasIniciales() async {
     const categoriasIniciales = [
-      {'nombre': 'Tecnología'},
-      {'nombre': 'Educación'},
-      {'nombre': 'Entretenimiento'},
-      {'nombre': 'Negocios'},
-      {'nombre': 'Salud'},
+      {'nombre': 'Administración de Empresas'},
+      {'nombre': 'Administración de Negocios Internacionales'},
+      {'nombre': 'Contabilidad'},
+      {'nombre': 'Desarrollo de Sistemas de Información'},
+      {'nombre': 'Gastronomía'},
+      {'nombre': 'Guía Oficial de Turismo'},
     ];
 
     final batch = _firestore.batch();

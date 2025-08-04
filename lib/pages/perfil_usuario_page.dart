@@ -35,24 +35,17 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
 
     switch (index) {
       case 0:
-        // Ya estamos en esta página
+        Navigator.popAndPushNamed(context, '/perfil');
         break;
       case 1:
-        Navigator.popAndPushNamed(context, '/categorias');
-        break;
-      case 2:
         Navigator.popAndPushNamed(context, '/publicaciones');
         break;
-      case 3:
+      case 2:
         Navigator.popAndPushNamed(context, '/todas-publicaciones');
         break;
-      case 4:
+      case 3:
         FirebaseAuth.instance.signOut();
-        // Redirigir al usuario a la página de inicio de sesión
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/', // Asumiendo que la ruta de login es la raíz
-          (route) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         break;
     }
   }
@@ -260,10 +253,10 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categorías',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.category),
+          //   label: 'Categorías',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',

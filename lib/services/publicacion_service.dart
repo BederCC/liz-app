@@ -23,6 +23,7 @@ class PublicacionService {
     required String categoriaId,
     required String titulo,
     required String contenido,
+    String? imagenUrl,
     required bool esAnonimo,
   }) async {
     final user = _auth.currentUser;
@@ -33,6 +34,7 @@ class PublicacionService {
       'categoriaId': categoriaId,
       'titulo': titulo,
       'contenido': contenido,
+      'imagenUrl': imagenUrl,
       'esAnonimo': esAnonimo,
       'fechaPublicacion': FieldValue.serverTimestamp(),
     });
@@ -45,12 +47,14 @@ class PublicacionService {
     required String categoriaId,
     required String titulo,
     required String contenido,
+    String? imagenUrl,
     required bool esAnonimo,
   }) async {
     await _firestore.collection('publicaciones').doc(publicacionId).update({
       'categoriaId': categoriaId,
       'titulo': titulo,
       'contenido': contenido,
+      'imagenUrl': imagenUrl,
       'esAnonimo': esAnonimo,
       'fechaPublicacion': FieldValue.serverTimestamp(),
     });
