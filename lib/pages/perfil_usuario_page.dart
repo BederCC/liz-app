@@ -17,7 +17,7 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
   late TextEditingController _apellidoController;
   late TextEditingController _telefonoController;
   bool _isLoading = false;
-  int _selectedIndex = 0; // Índice para "Perfil"
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -77,14 +77,18 @@ class _PerfilUsuarioPageState extends State<PerfilUsuarioPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         try {
+          // Usar 'set' con merge: true para crear o actualizar el documento
           await FirebaseFirestore.instance
               .collection('usuarios')
               .doc(user.uid)
-              .update({
-                'nombre': _nombreController.text.trim(),
-                'apellido': _apellidoController.text.trim(),
-                'telefono': _telefonoController.text.trim(),
-              });
+              .set(
+                {
+                  'nombre': _nombreController.text.trim(),
+                  'apellido': _apellidoController.text.trim(),
+                  'telefono': _telefonoController.text.trim(),
+                },
+                SetOptions(merge: true), // Esta opción es clave
+              );
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

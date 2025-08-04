@@ -57,10 +57,12 @@ void main() async {
         theme: ThemeData(primarySwatch: Colors.blue),
         home: const AuthWrapper(), // Widget que decide si mostrar login o home
         routes: {
-          '/perfil': (context) => const PerfilUsuarioPage(),
+          '/perfil': (context) =>
+              ProfilePage(user: FirebaseAuth.instance.currentUser!),
           '/publicaciones': (context) => const PublicacionesPage(),
           '/categorias': (context) => const CategoriasPage(),
           '/todas-publicaciones': (context) => const TodasPublicacionesPage(),
+          '/perfil_usuario': (context) => const PerfilUsuarioPage(),
         },
         debugShowCheckedModeBanner: false,
       ),
@@ -521,8 +523,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _navigateToProfileUpdate() {
-    Navigator.pushNamed(context, '/perfil').then((_) {
-      // Actualizar estado al regresar de editar el perfil
+    // Navegar a la página de edición de perfil y luego actualizar el estado
+    Navigator.pushNamed(context, '/perfil_usuario').then((_) {
       _checkProfileStatus();
     });
   }
@@ -579,14 +581,23 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 50),
-            const Text(
-              'Mi Perfil',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Mi Perfil',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.black),
+                  onPressed: _navigateToProfileUpdate,
+                ),
+              ],
             ),
             const SizedBox(height: 30),
             Center(
