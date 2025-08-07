@@ -23,13 +23,11 @@ void main() async {
     );
     print("Firebase inicializado correctamente");
 
-    // Configuración de Firestore
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
 
-    // Verificación de conexión (opcional, puedes quitarlo en producción)
     try {
       await FirebaseFirestore.instance
           .collection('test')
@@ -49,13 +47,37 @@ void main() async {
         Provider<UserService>(create: (_) => UserService()),
         Provider<CategoriaService>(create: (_) => CategoriaService()),
         Provider<PublicacionService>(create: (_) => PublicacionService()),
-        // Agrega otros providers aquí si los necesitas
       ],
       child: MaterialApp(
-        // Mueve MaterialApp aquí como único punto de entrada
-        title: 'Tu Aplicación',
-        theme: ThemeData(primarySwatch: Colors.blue),
-        home: const AuthWrapper(), // Widget que decide si mostrar login o home
+        title: 'UniConnect',
+        theme: ThemeData(
+          primarySwatch: Colors.indigo,
+          scaffoldBackgroundColor: Colors.indigo.shade50,
+          appBarTheme: const AppBarTheme(
+            color: Colors.indigo,
+            elevation: 4,
+            iconTheme: IconThemeData(color: Colors.white),
+            titleTextStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            labelStyle: TextStyle(color: Colors.indigo.shade800),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.indigo.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        home: const AuthWrapper(),
         routes: {
           '/perfil': (context) =>
               ProfilePage(user: FirebaseAuth.instance.currentUser!),
@@ -75,11 +97,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Este widget ahora es redundante y puede ser eliminado
-    // porque ya tenemos MaterialApp en el runApp
     return MaterialApp(
-      title: 'Tu Aplicación',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      title: 'UniConnect',
+      theme: ThemeData(primarySwatch: Colors.indigo),
       home: const AuthWrapper(),
       routes: {'/perfil': (context) => const PerfilUsuarioPage()},
     );
@@ -102,7 +122,6 @@ class AuthWrapper extends StatelessWidget {
         }
       }
     } catch (e) {
-      // Ignorar error específico de PigeonUserInfo
       if (!e.toString().contains('PigeonUserInfo')) {
         print("Error verificando email: $e");
       }
@@ -165,7 +184,6 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
-      // Validación adicional del dominio
       final email = _emailController.text.trim();
       if (!email.endsWith('@khipu.edu.pe')) {
         setState(() {
@@ -212,7 +230,6 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // 1. Crear usuario solo en Authentication
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: email,
@@ -223,7 +240,6 @@ class _LoginPageState extends State<LoginPage> {
       final user = userCredential.user;
       if (user == null) throw Exception("Usuario no creado");
 
-      // 2. Enviar email de verificación (NO crear en Firestore aún)
       await user.sendEmailVerification();
 
       if (!mounted) return;
@@ -239,9 +255,11 @@ class _LoginPageState extends State<LoginPage> {
         _showRegisterForm = false;
       });
     } on FirebaseAuthException catch (e) {
-      // Manejo de errores (igual que antes)
+      setState(() => _errorMessage = e.message ?? "Error al registrar");
     } catch (e) {
-      // Manejo de errores (igual que antes)
+      setState(() => _errorMessage = "Error inesperado: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -280,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.indigo.shade50,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -288,13 +306,13 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'UniConnect',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.indigo.shade800,
                 ),
               ),
               const SizedBox(height: 40),
@@ -307,15 +325,6 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: 'Correo electrónico',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -333,15 +342,6 @@ class _LoginPageState extends State<LoginPage> {
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Contraseña',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -359,15 +359,6 @@ class _LoginPageState extends State<LoginPage> {
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Confirmar Contraseña',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 2.0,
-                            ),
-                          ),
                         ),
                         validator: (value) {
                           if (value != _passwordController.text) {
@@ -390,19 +381,26 @@ class _LoginPageState extends State<LoginPage> {
               ],
               const SizedBox(height: 30),
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(color: Colors.indigo),
+                    )
                   : ElevatedButton(
                       onPressed: _showRegisterForm ? _register : _signIn,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        elevation: 4,
                       ),
                       child: Text(
                         _showRegisterForm ? 'Registrarse' : 'Iniciar Sesión',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
               const SizedBox(height: 20),
@@ -417,14 +415,17 @@ class _LoginPageState extends State<LoginPage> {
                   _showRegisterForm
                       ? '¿Ya tienes cuenta? Inicia sesión'
                       : 'Crear cuenta',
-                  style: const TextStyle(color: Colors.black),
+                  style: const TextStyle(
+                    color: Colors.indigo,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               TextButton(
                 onPressed: _resetPassword,
                 child: const Text(
                   '¿Olvidaste tu contraseña?',
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: Colors.indigo),
                 ),
               ),
             ],
@@ -526,7 +527,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _navigateToProfileUpdate() {
-    // Navegar a la página de edición de perfil y luego actualizar el estado
     Navigator.pushNamed(context, '/perfil_usuario').then((_) {
       _checkProfileStatus();
     });
@@ -570,14 +570,14 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: Colors.indigo.shade50,
+        body: Center(child: CircularProgressIndicator(color: Colors.indigo)),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.indigo.shade50,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -587,17 +587,17 @@ class _ProfilePageState extends State<ProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Mi Perfil',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.indigo.shade800,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  icon: Icon(Icons.edit, color: Colors.indigo.shade800),
                   onPressed: _navigateToProfileUpdate,
                 ),
               ],
@@ -606,18 +606,18 @@ class _ProfilePageState extends State<ProfilePage> {
             Center(
               child: CircleAvatar(
                 radius: 60,
-                backgroundColor: Colors.grey.shade200,
-                child: const Icon(Icons.person, size: 60, color: Colors.black),
+                backgroundColor: Colors.indigo.shade100,
+                child: Icon(Icons.person, size: 60, color: Colors.indigo),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               widget.user.email ?? 'No email',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.indigo.shade800,
               ),
             ),
             const SizedBox(height: 10),
@@ -640,16 +640,12 @@ class _ProfilePageState extends State<ProfilePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.indigo,
+        unselectedItemColor: Colors.grey.shade600,
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          // BottomNavigationBarItem(
-          //   icon: Icon(Icons.category),
-          //   label: 'Categorías',
-          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.my_library_books),
             label: 'Mis Publicaciones',
@@ -667,12 +663,12 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: widget.user.emailVerified
             ? Colors.green.shade50
-            : Colors.orange.shade50,
+            : Colors.indigo.shade50,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: widget.user.emailVerified
               ? Colors.green.shade200
-              : Colors.orange.shade200,
+              : Colors.indigo.shade200,
         ),
       ),
       child: Row(
@@ -681,7 +677,7 @@ class _ProfilePageState extends State<ProfilePage> {
             widget.user.emailVerified ? Icons.verified : Icons.warning,
             color: widget.user.emailVerified
                 ? Colors.green.shade700
-                : Colors.orange.shade700,
+                : Colors.indigo.shade700,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -692,7 +688,7 @@ class _ProfilePageState extends State<ProfilePage> {
               style: TextStyle(
                 color: widget.user.emailVerified
                     ? Colors.green.shade700
-                    : Colors.orange.shade700,
+                    : Colors.indigo.shade700,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -704,14 +700,17 @@ class _ProfilePageState extends State<ProfilePage> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.blue.shade600,
+                      color: Colors.indigo,
                     ),
                   )
                 : TextButton(
                     onPressed: _sendVerificationEmail,
-                    child: const Text(
+                    child: Text(
                       'Enviar verificación',
-                      style: TextStyle(color: Colors.blue),
+                      style: TextStyle(
+                        color: Colors.indigo,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
           ],
@@ -724,33 +723,33 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: Colors.orange.shade50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: Colors.orange.shade200),
       ),
       child: Column(
         children: [
-          Icon(Icons.error_outline, color: Colors.red.shade700, size: 40),
+          Icon(Icons.error_outline, color: Colors.orange.shade700, size: 40),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Perfil incompleto',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.orange.shade800,
               fontSize: 18,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Debes completar tu información personal para acceder a todas las funciones.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black87),
+            style: TextStyle(color: Colors.grey.shade700),
           ),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: _navigateToProfileUpdate,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
+              backgroundColor: Colors.indigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -780,7 +779,6 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   @override
   void initState() {
     super.initState();
-    // Inicia un temporizador para verificar periódicamente si el correo ha sido verificado
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       await widget.user.reload();
       final updatedUser = FirebaseAuth.instance.currentUser;
@@ -834,44 +832,51 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.indigo.shade50,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.email, color: Colors.black, size: 80),
+              Icon(Icons.email, color: Colors.indigo, size: 80),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Verifica tu correo electrónico',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.indigo.shade800,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 'Se ha enviado un enlace de verificación a ${widget.user.email}. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para continuar.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
               ),
               const SizedBox(height: 30),
               _isVerificationEmailSending
-                  ? const CircularProgressIndicator()
+                  ? CircularProgressIndicator(color: Colors.indigo)
                   : ElevatedButton(
                       onPressed: _sendVerificationEmail,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                      ),
+                      child: const Text(
+                        'Reenviar correo de verificación',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: const Text('Reenviar correo de verificación'),
                     ),
               const SizedBox(height: 20),
               TextButton(
@@ -886,7 +891,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 },
                 child: const Text(
                   'Volver a la pantalla de inicio',
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: Colors.indigo),
                 ),
               ),
             ],
