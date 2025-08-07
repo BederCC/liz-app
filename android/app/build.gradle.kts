@@ -11,7 +11,7 @@ val flutterVersionName = (project.properties["flutterVersionName"] ?: "1.0").toS
 
 android {
     namespace = "com.example.aplicacion_luz"
-    compileSdk = 34
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {

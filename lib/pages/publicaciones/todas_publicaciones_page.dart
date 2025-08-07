@@ -96,67 +96,57 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
       appBar: AppBar(
         title: const Text(
           'Todas las Publicaciones',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: Colors.indigo,
+        elevation: 4,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Container(
-        color: Colors.white,
+        color: Colors.indigo.shade50,
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 8.0,
+                vertical: 12.0,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _categoriaSeleccionada,
-                      decoration: InputDecoration(
-                        labelText: 'Filtrar por Categoría',
-                        labelStyle: const TextStyle(color: Colors.black),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.black),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      dropdownColor: Colors.white,
-                      style: const TextStyle(color: Colors.black),
-                      icon: const Icon(
-                        Icons.arrow_drop_down,
-                        color: Colors.black,
-                      ),
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Todas las categorías'),
-                        ),
-                        ..._categorias.map((categoria) {
-                          return DropdownMenuItem(
-                            value: categoria.id,
-                            child: Text(categoria.nombre),
-                          );
-                        }).toList(),
-                      ],
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _categoriaSeleccionada = newValue;
-                        });
-                      },
-                    ),
+              child: DropdownButtonFormField<String>(
+                value: _categoriaSeleccionada,
+                decoration: InputDecoration(
+                  labelText: 'Filtrar por Categoría',
+                  labelStyle: TextStyle(color: Colors.indigo.shade800),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.indigo.shade300),
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.indigo, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                dropdownColor: Colors.white,
+                style: const TextStyle(color: Colors.black87),
+                icon: Icon(Icons.arrow_drop_down, color: Colors.indigo),
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('Todas las categorías'),
+                  ),
+                  ..._categorias.map((categoria) {
+                    return DropdownMenuItem(
+                      value: categoria.id,
+                      child: Text(categoria.nombre),
+                    );
+                  }).toList(),
                 ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _categoriaSeleccionada = newValue;
+                  });
+                },
               ),
             ),
             Expanded(
@@ -165,9 +155,21 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
                 child: StreamBuilder<QuerySnapshot>(
                   stream: getPublicacionesStream(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.black),
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(color: Colors.indigo),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No hay publicaciones para mostrar.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                       );
                     }
 
@@ -212,8 +214,8 @@ class _TodasPublicacionesPageState extends State<TodasPublicacionesPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.indigo,
+        unselectedItemColor: Colors.grey.shade600,
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
@@ -299,8 +301,8 @@ class PublicacionItem extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,19 +315,29 @@ class PublicacionItem extends StatelessWidget {
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  image: DecorationImage(
-                    image: NetworkImage(imagenUrl),
-                    fit: BoxFit.cover,
-                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  imagenUrl,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      color: Colors.grey.shade200,
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey.shade400,
+                        size: 50,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
           _buildStats(context),
-          const Divider(height: 1, thickness: 1, color: Colors.grey),
+          const Divider(height: 1, thickness: 1, color: Colors.indigo),
           _buildActions(context),
           if (isCommentsExpanded) _buildCommentsSection(),
         ],
@@ -346,34 +358,34 @@ class PublicacionItem extends StatelessWidget {
                   'Usuario';
 
         return Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.grey.shade200,
+                radius: 24,
+                backgroundColor: Colors.indigo.shade100,
                 child: data['esAnonimo'] == true
-                    ? const Icon(Icons.person, size: 20, color: Colors.black)
+                    ? Icon(Icons.person_outline, size: 28, color: Colors.indigo)
                     : Text(
                         nombreUsuario.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black,
+                          fontSize: 18,
+                          color: Colors.indigo.shade800,
                         ),
                       ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       nombreUsuario,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black,
+                        fontSize: 18,
+                        color: Colors.indigo.shade800,
                       ),
                     ),
                     Text(
@@ -402,15 +414,15 @@ class PublicacionItem extends StatelessWidget {
           Text(
             data['titulo'] ?? 'Sin título',
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             data['contenido'] ?? '',
-            style: const TextStyle(fontSize: 15, color: Colors.black),
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
           ),
           const SizedBox(height: 16),
         ],
@@ -429,22 +441,15 @@ class PublicacionItem extends StatelessWidget {
               final likesCount = snapshot.data ?? 0;
               return Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.thumb_up,
-                      size: 14,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
+                  Icon(Icons.thumb_up, size: 16, color: Colors.indigo),
+                  const SizedBox(width: 6),
                   Text(
                     likesCount.toString(),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               );
@@ -460,7 +465,7 @@ class PublicacionItem extends StatelessWidget {
               final commentCount = snapshot.data?.docs.length ?? 0;
               return Text(
                 '$commentCount comentarios',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
               );
             },
           ),
@@ -490,12 +495,15 @@ class PublicacionItem extends StatelessWidget {
                   return TextButton.icon(
                     icon: Icon(
                       hasLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                      color: hasLiked ? Colors.black : Colors.grey,
+                      color: hasLiked ? Colors.indigo : Colors.grey,
                     ),
                     label: Text(
                       'Me gusta ${likesCount > 0 ? '($likesCount)' : ''}',
                       style: TextStyle(
-                        color: hasLiked ? Colors.black : Colors.grey,
+                        color: hasLiked ? Colors.indigo : Colors.grey,
+                        fontWeight: hasLiked
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                     onPressed: onToggleLike,
@@ -509,12 +517,15 @@ class PublicacionItem extends StatelessWidget {
               isCommentsExpanded
                   ? Icons.mode_comment
                   : Icons.mode_comment_outlined,
-              color: isCommentsExpanded ? Colors.black : Colors.grey,
+              color: isCommentsExpanded ? Colors.indigo : Colors.grey,
             ),
             label: Text(
               'Comentar',
               style: TextStyle(
-                color: isCommentsExpanded ? Colors.black : Colors.grey,
+                color: isCommentsExpanded ? Colors.indigo : Colors.grey,
+                fontWeight: isCommentsExpanded
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
             onPressed: onToggleComments,
@@ -533,9 +544,9 @@ class PublicacionItem extends StatelessWidget {
             future: service.obtenerComentarios(publicacionId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: Colors.black),
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: CircularProgressIndicator(color: Colors.indigo),
                 );
               }
 
@@ -557,46 +568,77 @@ class PublicacionItem extends StatelessWidget {
                   final comentario = snapshot.data!.elementAt(index);
                   final fecha = (comentario['fecha'] as Timestamp).toDate();
 
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.grey.shade200,
-                      child: Text(
-                        comentario['usuarioNombre']
-                            .substring(0, 1)
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: Column(
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          comentario['usuarioNombre'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.indigo.shade50,
+                          child: Text(
+                            comentario['usuarioNombre']
+                                .substring(0, 1)
+                                .toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.indigo,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        Text(
-                          comentario['contenido'],
-                          style: const TextStyle(color: Colors.black),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      comentario['usuarioNombre'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.indigo.shade800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      comentario['contenido'],
+                                      style: const TextStyle(
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Text(
+                                  DateFormat('dd MMM HH:mm').format(fecha),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    subtitle: Text(
-                      DateFormat('dd MMM HH:mm').format(fecha),
-                      style: TextStyle(color: Colors.grey.shade600),
                     ),
                   );
                 },
               );
             },
           ),
+          const SizedBox(height: 12),
           _buildCommentInput(),
         ],
       ),
@@ -613,35 +655,35 @@ class PublicacionItem extends StatelessWidget {
               controller: comentarioController,
               decoration: InputDecoration(
                 hintText: 'Escribe un comentario...',
-                hintStyle: TextStyle(color: Colors.grey.shade600),
+                hintStyle: TextStyle(color: Colors.grey.shade500),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: 20,
                   vertical: 12,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Colors.indigo, width: 2),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.grey.shade100,
               ),
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black87),
             ),
           ),
           const SizedBox(width: 8),
           CircleAvatar(
-            backgroundColor: Colors.black,
-            radius: 20,
+            backgroundColor: Colors.indigo,
+            radius: 24,
             child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white, size: 16),
+              icon: const Icon(Icons.send, color: Colors.white, size: 20),
               onPressed: () async {
                 final contenido = comentarioController.text.trim();
                 if (contenido.isNotEmpty) {

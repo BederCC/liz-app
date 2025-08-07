@@ -117,6 +117,9 @@ class AuthWrapper extends StatelessWidget {
         if (authSnapshot.connectionState == ConnectionState.active) {
           final user = authSnapshot.data;
           if (user != null) {
+            if (!user.emailVerified) {
+              return EmailVerificationPage(user: user);
+            }
             return StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('usuarios')
@@ -757,6 +760,138 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text('Completar perfil ahora'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class EmailVerificationPage extends StatefulWidget {
+  final User user;
+  const EmailVerificationPage({Key? key, required this.user}) : super(key: key);
+
+  @override
+  _EmailVerificationPageState createState() => _EmailVerificationPageState();
+}
+
+class _EmailVerificationPageState extends State<EmailVerificationPage> {
+  bool _isVerificationEmailSending = false;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicia un temporizador para verificar periódicamente si el correo ha sido verificado
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      await widget.user.reload();
+      final updatedUser = FirebaseAuth.instance.currentUser;
+      if (updatedUser != null && updatedUser.emailVerified) {
+        timer.cancel();
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const AuthWrapper()),
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  Future<void> _sendVerificationEmail() async {
+    if (_isVerificationEmailSending) return;
+
+    setState(() => _isVerificationEmailSending = true);
+
+    try {
+      await widget.user.sendEmailVerification();
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Correo de verificación enviado'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar correo: ${e.toString()}'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isVerificationEmailSending = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.email, color: Colors.black, size: 80),
+              const SizedBox(height: 20),
+              const Text(
+                'Verifica tu correo electrónico',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Se ha enviado un enlace de verificación a ${widget.user.email}. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para continuar.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 30),
+              _isVerificationEmailSending
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _sendVerificationEmail,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Reenviar correo de verificación'),
+                    ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const AuthWrapper(),
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                },
+                child: const Text(
+                  'Volver a la pantalla de inicio',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
